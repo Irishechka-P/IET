@@ -23,7 +23,9 @@ class IET:
         # смутные подозрения, что параметрические подсчеты будет ОЧЕНЬ ЛЕГКО РЕАЛИЗОВАТЬ
         # просто lengths_before := [[k1_1,...,km_1], ... , [k1_n,...,km_n]]
 
-    def step_when_origin_is_smaller(self):
+###ТУТ ОШИБКА. К НЕКОТОРЫМ ЗНАЧЕНИЯМ SELF.PERMUTATION НАДО ПРИБАВИТЬ 1. ПОЧЕМУ Я ЕЕ НЕ ЗАМЕТИЛА??
+    #ладно возможно ее нет...
+    def right_step_when_origin_is_smaller(self):
         self.lengths_before[self.inverse_permutation[-1]] -= self.lengths_before[-1]
         self.lengths_before.insert(self.inverse_permutation[-1] + 1, self.lengths_before[-1])
         self.permutation.insert(self.inverse_permutation[-1] + 1, self.permutation[-1])
@@ -35,10 +37,12 @@ class IET:
             self.inverse_permutation[self.permutation[i]] = i
             self.lengths_after[self.permutation[i]] = self.lengths_before[i]
 
-    def step_when_image_is_smaller(self):
+###ТУТ ОШИБКА. К НЕКОТОРЫМ ЗНАЧЕНИЯМ SELF.PERMUTATION НАДО ПРИБАВИТЬ 1. ПОЧЕМУ Я ЕЕ НЕ ЗАМЕТИЛА??
+    def right_step_when_image_is_smaller(self):
         self.lengths_after[self.permutation[-1]] -= self.lengths_after[-1]
         self.lengths_after.insert(self.permutation[-1] + 1, self.lengths_after[-1])
         self.inverse_permutation.insert(self.permutation[-1] + 1, self.inverse_permutation[-1])
+
         self.lengths_after.pop()
         self.inverse_permutation.pop()
 
@@ -49,19 +53,93 @@ class IET:
             self.permutation[self.inverse_permutation[i]] = i
             self.lengths_before[self.inverse_permutation[i]] = self.lengths_after[i]
 
-    def step_of_Rauzy_induction(self):
+
+
+######################################################
+###ЭТО ВООБЩЕ НЕ ТО ЧТО НУЖНО ПЕРЕПИСАТЬ ПОЛНОСТЬЮ
+######################################################
+    def left_step_when_origin_is_smaller(self):
+
+
+
+        self.lengths_after[self.permutation[-1]] -= self.lengths_after[-1]
+        self.lengths_after.insert(self.permutation[-1] + 1, self.lengths_after[-1])
+        self.inverse_permutation.insert(self.permutation[-1] + 1, self.inverse_permutation[-1])
+
+        self.lengths_after.pop()
+        self.inverse_permutation.pop()
+
+        # ДОПИСАТЬ set_via_inverse_permutation, если получится
+        # и тогда заменить следующий код одним вызовом
+
+        for i in range(len(self.inverse_permutation)):
+            self.permutation[self.inverse_permutation[i]] = i
+            self.lengths_before[self.inverse_permutation[i]] = self.lengths_after[i]
+
+
+
+######################################################
+###  ТЕСТИРОВАТЬ
+######################################################
+    def left_step_when_image_is_smaller(self):
+        self.lengths_after[self.permutation[1]] -= self.lengths_after[1]
+        self.lengths_after.insert(self.permutation[1], self.lengths_after[1])
+        self.inverse_permutation.insert(self.permutation[1], self.inverse_permutation[1])
+
+        del self.inverse_permutation[1]
+        del self.lengths_after[1]
+
+        # ДОПИСАТЬ set_via_inverse_permutation, если получится
+        # и тогда заменить следующий код одним вызовом
+
+        for i in range(len(self.inverse_permutation)):
+            self.permutation[self.inverse_permutation[i]] = i
+            self.lengths_before[self.inverse_permutation[i]] = self.lengths_after[i]
+
+    def right_step_of_Rauzy_induction(self):
         # тут пока идет сравнение через знак меньше, потом нужно будет определить
         # функцию smaller(first, second)
         if self.lengths_after[-1] < self.lengths_before[-1]:
-            self.step_when_image_is_smaller()
+            self.right_step_when_image_is_smaller()
 
         else:
-            self.step_when_origin_is_smaller()
+            self.right_step_when_origin_is_smaller()
+        # если длины одинаковые, то нехорошо, пока что видимо у меня появляются куски нулевой длины
+        # в принципе, это неинтересный случай, но надо все равно его обработать
+
+    def left_step_of_Rauzy_induction(self):
+        # тут пока идет сравнение через знак меньше, потом нужно будет определить
+        # функцию smaller(first, second)
+        if self.lengths_after[1] < self.lengths_before[1]:
+            self.left_step_when_image_is_smaller()
+
+        else:
+            self.left_step_when_origin_is_smaller()
         # если длины одинаковые, то нехорошо, пока что видимо у меня появляются куски нулевой длины
         # в принципе, это неинтересный случай, но надо все равно его обработать
 
 
-# тестировала каждый step на одном примере, что не есть хорошо, надо потестировать еще
+
+# тестирование шага индукции с origin.first<image.first
+#ОТСУТСТВУЕТ КАК И РЕАЛИЗАЦИЯ ЭТОГО ШАГА!!!
+
+# тестирование шага индукции с origin.first>image.first
+"""
+T = IET()
+T.set_via_permutation([0, 3, 5, 1, 4, 2], [0, 2.5, 3.0, 2.0, 2.5, 5.0])
+
+print(T.lengths_before)
+print(T.lengths_after)
+
+T.left_step_of_Rauzy_induction()
+print()
+print(T.lengths_before)
+print(T.lengths_after)
+print(T.permutation)
+print(T.inverse_permutation)
+"""
+
+# тестировала каждый right_step на одном примере, что не есть хорошо, надо потестировать еще
 
 # тестирование шага индукции с origin.last>image.last
 """
@@ -71,7 +149,7 @@ T.set_via_permutation([0, 3, 5, 1, 4, 2], [0, 2.5, 3.0, 2.0, 2.5, 5.0])
 print(T.lengths_before)
 print(T.lengths_after)
 
-T.step_of_Rauzy_induction()
+T.right_step_of_Rauzy_induction()
 print()
 print(T.lengths_before)
 print(T.lengths_after)
