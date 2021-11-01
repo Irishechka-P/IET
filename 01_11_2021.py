@@ -1,11 +1,13 @@
 """
-1. Берем "правильное" перекладывание из 4-курсовой и находим структуру циклов для него
-    По "правильному" уже построен его брат с параметрами (a+b+c, b, c)
-   Пока что структуру одного цикла с использованием DELETE
-   Потом обдумать скрипт для получения остальных шести перекладываний (автоматически более или менее), ну это не сложно,
-    условие на длины просто поставить и запустить левую индукцию
-    Ну и потом соответсвенно структуру всех циклов получить
+(a, b, c) - параметры из 4-курсовой
+По ним (ручками) построен братишка для initial с параметрами (a+b+c, b, c). Тут играемся с ним.
+А именно, получаем структуру его циклов.
+ДЛЯ АВТОМАТИЧНОСТИ НЕ ХВАТАЕТ РАЗБИЕНИЯ ПОЛУЧЕННЫХ ЦИКЛОВ НА КЛАССЫ ЭКВИВАЛЕНТНОСТИ.
+Структура для самого (a, b, c) записана в курсовой. Сверяем пока что тоже вручную...
 
+Не знаю, стоит ли добавлять проверку пропорциональности, все равно скрипт ПСЕВДОпараметрический. Ну для себя можно.
+
+Еще хорошо бы подумать, как < заменить на is_smaller, но это уже для гениев.
 """
 
 
@@ -15,6 +17,30 @@ class IET:
         self.inverse_permutation = [0, 1]
         self.lengths_before = [0, 1]
         self.lengths_after = [0, 1]
+
+    def get_sum_len(self):
+        answer = [0, 0, 0]
+        for i in range(len(self.lengths_before)):
+            for j in range(3):
+                answer[j] += self.lengths_before[i][j]
+        return answer
+
+    def get_sums_of_len(self):
+        """
+        It's necessary for getting 6 other IETs for initial one.
+        Applying left_step_of_Rauzy to T until sum_len(T) equals sums_of_len[0] we'll get 1st;
+                                                                 sums_of_len[1] we'll get 2nd;
+        and so on.
+
+        """
+        answer = list()
+        answer.append(self.get_sum_len().copy())
+
+        for j in range(1, 7):
+            answer.append(answer[-1].copy())
+            for i in range(3):
+                answer[-1][i] -= self.lengths_before[j][i]
+        return answer
 
     def set_via_permutation(self, permutation, lengths_before):
         # set IET via _permutation_ and _lengths_before_
@@ -121,17 +147,6 @@ class IET:
         # в принципе, это неинтересный случай, но надо все равно его обработать
 
 
-T = IET()
-lengths_before = [[0, 0, 0], [1, 1, 0], [0, -1, 1], [0, 1, 0], [-1, 1, 0], [0, -1, 1], [0, 1, 0], [1, 0, 0]]
-# all lengths of format [k0, k1, k2] where length is equal to k0+k1*x+k2*x^2
-T.set_via_permutation([0, 5, 1, 6, 3, 7, 4, 2], lengths_before)
-
-"""for i in range(50):
-    print(T.permutation)
-    T.right_step_of_Rauzy_induction()
-"""
-
-
 def get_the_structure_of_cycle(T, kit):
     S = IET()
     S.set_via_permutation(T.permutation, T.lengths_before)
@@ -152,16 +167,25 @@ def get_the_structure_of_cycle(T, kit):
         S.right_step_of_Rauzy_induction()
 
 
-s0 = {}
-get_the_structure_of_cycle(T, s0)
-print(s0['start'], s0['length of cycle'], *s0['cycle'], sep='\n')
+T = IET()
+lengths_before = [[0, 0, 0], [1, 1, 0], [0, -1, 1], [0, 1, 0], [-1, 1, 0], [0, -1, 1], [0, 1, 0], [1, 0, 0]]
+# all lengths of format [k0, k1, k2] where length is equal to k0+k1*x+k2*x^2
+T.set_via_permutation([0, 5, 1, 6, 3, 7, 4, 2], lengths_before)
 
-print()
-print(T.lengths_before)  # тут я более чем проштрафился (но уже все исправили...)
+list_of_summary_lengths = T.get_sums_of_len().copy()
+# print(list_of_summary_lengths)
 
+s = list()
+
+for j in range(7):
+    while T.get_sum_len() != list_of_summary_lengths[j]:
+        T.left_step_of_Rauzy_induction()
+    s.append({})
+    get_the_structure_of_cycle(T, s[j])
+    print(s[j]['start'], s[j]['length of cycle'], *s[j]['cycle'], sep='\n')
+    # print(s[j]['start'], s[j]['length of cycle'], sep=', ')
 
 # надо потестировать ЛЕВУЮ индукцию
-
 # надо шесть раз обрезать ЛЕВОЙ индукцией и позапускать правую
-
 # ожидается, что везде будут циклы длины 21, структуры будет две различных (две группы по 3)
+# получилось именно так, чего НЕ МОГЛО произойти случайно, так что тестировать левую индукцию мы КОНЕЧНО ЖЕ не будем.
